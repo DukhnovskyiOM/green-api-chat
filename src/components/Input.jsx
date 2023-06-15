@@ -72,7 +72,7 @@ const handleChange = (e) => {
                 <button>Send</button>
             </div>
             </form>
-            <button onClick={getNotification}>+</button>
+            {/* <button onClick={getNotification}>+</button> */}
         </div>
     )
 }
