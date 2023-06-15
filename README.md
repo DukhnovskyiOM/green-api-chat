@@ -42,5 +42,3 @@
 Для запуска приложения введите:
 - npm install
 - npm run dev
-
-Так же можно попробовать по [ссылке](https://testshoplist.herokuapp.com/) .
