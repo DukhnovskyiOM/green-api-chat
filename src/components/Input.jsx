@@ -11,7 +11,7 @@ const Input = () => {
     const userInfo = useSelector(state => state.userInfo.userInfo);
 
 
-  const getNotification = (async () => {
+  const getNotificationn = (async () => {
 
         try {
 
@@ -56,7 +56,7 @@ const Input = () => {
     })
 
     useEffect(()=>{
-        getNotification()
+        getNotificationn()
     },[])
 
 
