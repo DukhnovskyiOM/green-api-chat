@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import axios from 'axios';
 import { useNavigate } from "react-router-dom"
 import { useDispatch, useSelector } from "react-redux"
@@ -11,37 +11,59 @@ const Input = () => {
     const userInfo = useSelector(state => state.userInfo.userInfo);
 
 
-    const getNotification = async () => {
+  const getNotification = (async () => {
 
         try {
-            const data = await axios.get(`https://api.green-api.com/waInstance${userInfo[0].id}/receiveNotification/${userInfo[0].token}`)
-            console.log(data?.data?.receiptId)
-            const recId = data?.data?.receiptId
-            const text = data.data?.body?.messageData?.textMessageData?.textMessage
+
+            let response
+        while (response = await axios.get(`https://api.green-api.com/waInstance${userInfo[0].id}/receiveNotification/${userInfo[0].token}`)) {
+            
+            let webhookBody = response?.data?.body;
+            const recId = response?.data?.receiptId
+            const text = response.data?.body?.messageData?.textMessageData?.textMessage
             const coming = true
-            const time = new Date().toLocaleTimeString()
-            if(data?.data?.body?.typeWebhook === 'incomingMessageReceived'){
-                dispatch(addMessage({text, coming, time}));
-                await axios.delete(`https://api.green-api.com/waInstance${userInfo[0].id}/deleteNotification/${userInfo[0].token}/${recId}`);
-                //getNotification();
-            } else if(data === undefined){
-                getNotification();
-            } else {
-                getNotification();
+            const time = new Date(response?.data?.body?.timestamp * 1000).toLocaleTimeString()
+            if(response.data === null){
+                continue 
             }
 
-            await axios.delete(`https://api.green-api.com/waInstance${userInfo[0].id}/deleteNotification/${userInfo[0].token}/${recId}`);
+            if (webhookBody?.typeWebhook === 'incomingMessageReceived') {
+                await axios.delete(`https://api.green-api.com/waInstance${userInfo[0].id}/deleteNotification/${userInfo[0].token}/${recId}`);
+                if(text){
+                    dispatch(addMessage({text, coming, time}));
+                }
+            } 
+            else if (webhookBody.typeWebhook === 'stateInstanceChanged') {
+                if(response){
+                    await axios.delete(`https://api.green-api.com/waInstance${userInfo[0].id}/deleteNotification/${userInfo[0].token}/${recId}`);
+                }
+            } 
+            else if (webhookBody.typeWebhook === 'outgoingMessageStatus') {
+                if(response){
+                    await axios.delete(`https://api.green-api.com/waInstance${userInfo[0].id}/deleteNotification/${userInfo[0].token}/${recId}`);
+                }
+            } else if (webhookBody.typeWebhook === 'deviceInfo') {
+                if(response){
+                    await axios.delete(`https://api.green-api.com/waInstance${userInfo[0].id}/deleteNotification/${userInfo[0].token}/${recId}`);
+                }
+            }
+        }
+
 
         } catch (error) {
            console.log('error'); 
         }
-    }
+    })
 
-//setInterval(getNotification, 5000)
+    useEffect(()=>{
+        getNotification()
+    },[])
+
 
 
 const sendMessage = async (e) => {
     e.preventDefault();
+    
     if(!userInfo[0].id){
         navigate("/login")
     }
@@ -58,7 +80,6 @@ const sendMessage = async (e) => {
     } catch (error) {
         console.log('error setMessage'); 
     }
-    
 }
 
 const handleChange = (e) => {
@@ -72,7 +93,6 @@ const handleChange = (e) => {
                 <button>Send</button>
             </div>
             </form>
-            {/* <button onClick={getNotification}>+</button> */}
         </div>
     )
 }
